@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toronto Streets, By the Numbers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;600;700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="frontend/css/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+
+<nav id="global-controls">
+  <span>Years</span>
+  <select id="year-from"></select>
+  <span>–</span>
+  <select id="year-to"></select>
+</nav>
+
+<nav id="dot-nav" aria-label="Section navigation"></nav>
+
+<div id="scroller">
+
+  <!-- 1. HERO -->
+  <section class="section" id="hero" data-label="Start">
+    <div class="section-inner">
+      <div class="kicker">Toronto Police Service — Traffic Collision Records</div>
+      <h1>Closer Look at <br>Toronto’s Collisions</h1>
+      <p class="lede">
+        Every reported collision in this city leaves a row in a database: a date,
+        an hour, a location, and who was involved. We will inspect this closely, to see
+        exactly where road safety effort would matter most.
+      </p>
+      <div class="hero-stat" id="hero-stat">Loading…</div>
+      <div class="scroll-cue">Scroll to begin ↓</div>
+    </div>
+    <div class="scanline"></div>
+  </section>
+
+  <!-- 2. YEARLY TREND -->
+  <section class="section" id="page-trend" data-label="The trend">
+    <div class="section-inner">
+      <div class="narrative">
+        <div class="eyebrow">Chapter 1</div>
+        <h2>A decade of collisions</h2>
+        <p>
+          Collisions get reported by the thousands every year — a mix of city
+          growth, more vehicles on the road, and how consistently incidents
+          get reported. Before asking who's most at risk, it's worth seeing
+          the shape of the problem over time.
+        </p>
+        <p>
+          The bars below split each year's collisions by outcome: injury vs.
+          property-damage only. <strong>Fatal collisions are covered
+          separately in the next chapter</strong> — they're rare enough
+          (under 1% of all collisions) that stacking them in here would make
+          them invisible, and they deserve a more careful comparison than
+          "which bar is biggest" anyway.
+        </p>
+        <p style="font-size:0.85rem;color:var(--color-text-faint);">
+          With this we can track whether collision volume is rising faster or
+          slower than the city's population/traffic growth.
+        </p>
+        <div class="legend" id="trend-legend"></div>
+      </div>
+      <div class="chart-panel"><canvas id="chart-trend"></canvas></div>
+    </div>
+  </section>
+
+  <!-- 3. FATAL COLLISIONS (dedicated) -->
+  <section class="section" id="page-fatal" data-label="Fatal risk">
+    <div class="section-inner">
+      <div class="narrative">
+        <div class="eyebrow">Chapter 2</div>
+        <h2>Fatality risk is not equal</h2>
+        <p>
+          Fatal collisions are a small fraction of the total. However, what matters more is
+          the <strong>fatality rate</strong>: out of everyone involved in a
+          collision as a given road-user type, what share died?
+        </p>
+        <p>
+          Automobiles have steel and airbags around them; pedestrians and
+          cyclists have nothing. That structural difference is the likely
+          reason the rate tends to run higher for the road users with the
+          least physical protection, even though they're a minority of all
+          collisions.
+        </p>
+        <p style="font-size:0.85rem;color:var(--color-text-faint);">
+          This is why we should prioritize protection, not just volume of collisions, when
+          allocating safety budget.
+        </p>
+        <p class="stat-callout" id="fatal-callout"></p>
+      </div>
+      <div class="chart-panel"><canvas id="chart-fatal"></canvas></div>
+    </div>
+  </section>
+
+  <!-- 4. VEHICLE / ROAD-USER MATRIX -->
+  <section class="section" id="page-matrix" data-label="Who">
+    <div class="section-inner">
+      <div class="narrative">
+        <div class="eyebrow">Chapter 3</div>
+        <h2>Frequent doesn't mean dangerous</h2>
+        <p>
+          Automobile-only collisions are by far the most common — mechanically,
+          that's because automobiles are the overwhelming majority of vehicles
+          on the road, not because driving is uniquely dangerous. Look instead
+          at the share of each road-user group's collisions that end in injury
+          rather than just property damage.
+        </p>
+        <p>Toggle to see raw counts or the share within each group.</p>
+        <p style="font-size:0.85rem;color:var(--color-text-faint);">
+          This way we compare outcome severity per road-user type without
+          volume distorting the picture — the % view is the fairer basis for
+          arguing where protective infrastructure matters most.
+        </p>
+        <div class="controls">
+          <button class="toggle active" id="matrix-mode-count" data-mode="count">Counts</button>
+          <button class="toggle" id="matrix-mode-pct" data-mode="pct">% within group</button>
+        </div>
+      </div>
+      <div class="chart-panel">
+        <table class="matrix-table" id="matrix-table"></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. FACTORS BY DIVISION -->
+  <section class="section" id="page-factors" data-label="Where risk concentrates">
+    <div class="section-inner">
+      <div class="narrative">
+        <div class="eyebrow">Chapter 4</div>
+        <h2>Risk varies by division</h2>
+        <p>
+          Zooming from road-user type to geography: some police divisions record
+          far more severe outcomes than others, even after accounting for volume.
+          Likely reasons include busier arterial roads, more nightlife/foot
+          traffic, or larger geographic coverage — not necessarily "more
+          dangerous drivers." This narrows "citywide problem" down to specific
+          areas worth investigating first.
+        </p>
+        <p>Top divisions by total collision count, split by outcome.</p>
+        <p style="font-size:0.85rem;color:var(--color-text-faint);">
+          Useful for prioritizing where to direct engineering review or
+          enforcement budget, though it should be weighed against each
+          division's population and road-length before concluding it's
+          relatively more dangerous, not just busier.
+        </p>
+        <div class="glossary">
+          <strong>Reading the axis:</strong> codes like <strong>D42</strong> or
+          <strong>D32</strong> are Toronto Police operational divisions — geographic
+          patrol areas, not neighbourhood names. (Rows with no verified location —
+          labeled <strong>NSA</strong>, "No Specified Address" — are excluded here
+          since they aren't a real place to target.) See the
+          <a href="https://data.tps.ca/datasets/police-divisions-1/explore" target="_blank" rel="noopener">official division map</a>
+          for exact boundaries.
+        </div>
+      </div>
+      <div class="chart-panel"><canvas id="chart-factors"></canvas></div>
+    </div>
+  </section>
+
+  <!-- 6. PEDESTRIAN CUMULATIVE -->
+  <section class="section" id="page-cumulative" data-label="Pedestrian window">
+    <div class="section-inner">
+      <div class="narrative">
+        <div class="eyebrow">Chapter 5</div>
+        <h2>When pedestrian collisions actually happen</h2>
+        <p>
+          This is the average number of pedestrian collisions per hour of the
+          day, across every day in the selected range.
+        </p>
+        <p>
+          A likely reason for whatever peak shows up here: it lines up with
+          evening rush hour compounded by low light for much of the year —
+          drivers and pedestrians both have less time to react to each other.
+        </p>
+        <p style="font-size:0.85rem;color:var(--color-text-faint);">
+          With the chart, you can schedule crossing guards, enforcement blitzes, or
+          temporary lighting/awareness campaigns around the specific hour
+          identified below, rather than spreading effort evenly across the day.
+        </p>
+        <p class="stat-callout" id="cumulative-callout"></p>
+      </div>
+      <div class="chart-panel"><canvas id="chart-cumulative"></canvas></div>
+    </div>
+  </section>
+
+  <!-- 7. MAP -->
+  <section class="section" id="page-map" data-label="Map">
+    <div class="section-inner">
+      <div class="narrative">
+        <div class="eyebrow">Chapter 6</div>
+        <h2>Bringing it back to the map</h2>
+        <p>
+          Every pattern so far — the road user, the division — lands somewhere
+          real. Clusters likely track major arterials, denser pedestrian
+          activity (retail strips, transit stops), and higher traffic volume
+          generally. Circle size is collision volume; color marks how many of
+          those were fatal or injury collisions. Zoom in on your own
+          neighbourhood.
+        </p>
+        <p style="font-size:0.85rem;color:var(--color-text-faint);">
+          Residents and local councillors can check their own area
+          and bring a specific, data-backed request to the government,
+          rather than a general "our street feels unsafe" complaint.
+        </p>
+        <div class="controls" id="map-controls">
+          <button class="toggle active" data-severity="">All severities</button>
+          <button class="toggle" data-severity="Fatal">Fatal only</button>
+          <button class="toggle" data-severity="Injury">Injury</button>
+        </div>
+      </div>
+      <div class="chart-panel"><div id="map-canvas"></div></div>
+    </div>
+  </section>
+
+  <!-- 7. SOLUTIONS -->
+  <section class="section" id="page-solutions" data-label="Fixes">
+    <div class="section-inner">
+      <div class="narrative">
+        <div class="eyebrow">Chapter 7</div>
+        <h2>What actually fixes this</h2>
+        <p>
+          Every chapter so far pointed at a cause. Here's the countermeasure
+          that matches each one — click a fix to see where the data suggests
+          it would help most.
+        </p>
+        <div class="solution-list" id="solution-list">
+          <div class="solution-item active" data-solution="rumble_strips">
+            <div class="cause">Aggressive / distracted driving</div>
+            <h3>1. Rumble strips</h3>
+            <p>Creates vibration and sound to alert distracted or drowsy drivers drifting out of their lane.</p>
+          </div>
+          <div class="solution-item" data-solution="intersection">
+            <div class="cause">At intersections</div>
+            <h3>2. Intersection safety</h3>
+            <p>Redesigning intersections with better signals, clear markings, and protected phases for pedestrians reduces conflict points.</p>
+          </div>
+          <div class="solution-item" data-solution="lighting">
+            <div class="cause">Night time</div>
+            <h3>3. Street lighting</h3>
+            <p>Increases visibility at intersections and along corridors — critical for spotting pedestrians, who are disproportionately struck after dark.</p>
+          </div>
+          <div class="solution-item" data-solution="stop_signs">
+            <div class="cause">Uncontrolled crossings</div>
+            <h3>4. Stop signs &amp; signals</h3>
+            <p>Adding or upgrading traffic control at uncontrolled crossings gives pedestrians a protected right-of-way.</p>
+          </div>
+        </div>
+        <p style="font-size:0.78rem;color:var(--color-text-faint);margin-top:1rem;">
+          Locations are the top-ranked neighbourhoods by the closest available
+          proxy in this dataset for each cause (e.g. "night time" uses
+          pedestrian collisions during night hours) — a starting shortlist for
+          engineering review, not a substitute for a site survey.
+        </p>
+      </div>
+      <div class="chart-panel"><div id="solutions-map-canvas"></div></div>
+    </div>
+  </section>
+
+  <!-- 8. CONCLUSION -->
+  <section class="section" id="conclusion" data-label="Conclusion">
+    <div class="section-inner stack">
+      <div class="narrative" style="max-width:760px">
+        <div class="eyebrow">Where this leaves us</div>
+        <h2>The case for acting on specific hours and places</h2>
+        <p>
+          Across five years of records, the pattern holds: risk is not evenly
+          spread. It concentrates in particular hours, falls hardest on
+          pedestrians and cyclists relative to their numbers, and clusters in
+          identifiable divisions and neighbourhoods. That's exactly where
+          targeted street redesign, lighting, and enforcement would do the most
+          good per dollar spent.
+        </p>
+        <div class="scorecard" id="scorecard"></div>
+        <a class="cta" href="#hero">Back to the top ↑</a>
+      </div>
+    </div>
+    <footer class="credit">Source: Toronto Police Service Public Safety Data Portal — Traffic Collisions Open Data (ASR-T-TBL-001)</footer>
+  </section>
+
+</div>
+
+<script src="frontend/js/main.js"></script>
+</body>
+</html>

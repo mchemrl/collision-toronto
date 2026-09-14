@@ -1,0 +1,503 @@
+:root {
+  /* Surfaces */
+  --color-bg: #10141c;          /* deep blue-black, not flat grey */
+  --color-surface: #171d29;     /* panels, cards */
+  --color-surface-raised: #1f2735;
+
+  /* Text */
+  --color-text: #f2f4f8;        /* crisp near-white */
+  --color-text-muted: #9aa5b8;
+  --color-text-faint: #5b6478;
+
+  /* Structure */
+  --color-line: #2a3244;        /* hairlines / gridlines */
+
+  /* Accent — used for the single most important number/mark per page */
+  --color-accent: #2596ff;      /* electric blue */
+
+  /* Severity scale — used consistently across every chart, kept vivid */
+  --color-fatal: #ff4d5e;       /* vivid red */
+  --color-injury: #ff9f40;      /* vivid orange */
+  --color-ftr: #ffd93d;         /* vivid gold */
+  --color-pd: #34d399;          /* vivid green — least severe */
+
+  /* Road-user accents — used in the vehicle-involvement chart */
+  --color-pedestrian: #2596ff;
+  --color-bicycle: #a78bfa;
+  --color-automobile: #9aa5b8;
+  --color-motorcycle: #ff4d5e;
+  --color-passenger: #6f7b94;
+
+  /* Type */
+  --font-display: "Big Shoulders Display", sans-serif;
+  --font-body: "Public Sans", sans-serif;
+}
+
+/* ===================================================================== */
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html, body { scroll-behavior: auto; }
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+
+::selection { background: var(--color-accent); color: #1a1a1a; }
+
+a { color: var(--color-accent); }
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: 0.01em;
+  line-height: 1.02;
+}
+
+p { line-height: 1.6; }
+
+#scroller {
+  height: 100vh;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+}
+
+.section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 6vh 8vw;
+  scroll-snap-align: start;
+  border-bottom: 1px solid var(--color-line);
+  position: relative;
+}
+
+.section-inner {
+  display: grid;
+  grid-template-columns: minmax(260px, 38%) 1fr;
+  gap: 5vw;
+  align-items: center;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.section-inner.stack { grid-template-columns: 1fr; }
+
+.narrative {
+  max-width: 46ch;
+}
+
+.narrative .eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  color: var(--color-text-faint);
+  margin-bottom: 0.6em;
+}
+
+.narrative h2 {
+  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+  margin-bottom: 0.5em;
+}
+
+.narrative p {
+  color: var(--color-text-muted);
+  font-size: 1.02rem;
+}
+
+.narrative .stat-callout {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  color: var(--color-accent);
+  margin: 0.4em 0;
+  line-height: 1;
+}
+
+.narrative .stat-callout small {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin-top: 0.35em;
+}
+
+.chart-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 4px;
+  padding: 2rem;
+  min-height: 380px;
+  position: relative;
+}
+
+.chart-panel canvas, .chart-panel #map-canvas, .chart-panel #solutions-map-canvas {
+  width: 100% !important;
+}
+
+/* ---- Hero ---- */
+#hero {
+  border-bottom: 1px solid var(--color-line);
+}
+
+#hero .section-inner {
+  grid-template-columns: 1fr;
+  text-align: left;
+}
+
+#hero .kicker {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--color-text-faint);
+  margin-bottom: 1rem;
+}
+
+#hero h1 {
+  font-size: clamp(3rem, 9vw, 7rem);
+  margin-bottom: 0.3em;
+}
+
+#hero .hero-stat {
+  font-family: var(--font-display);
+  color: var(--color-accent);
+}
+
+#hero .lede {
+  max-width: 60ch;
+  color: var(--color-text-muted);
+  font-size: 1.15rem;
+  margin-top: 1.2rem;
+}
+
+#hero .scroll-cue {
+  margin-top: 3rem;
+  font-size: 0.85rem;
+  color: var(--color-text-faint);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.scanline {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  animation: sweep 5s linear infinite;
+}
+
+@keyframes sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ---- Dot navigation ---- */
+#dot-nav {
+  position: fixed;
+  right: 1.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  z-index: 20;
+}
+
+#dot-nav button {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid var(--color-text-faint);
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+}
+
+#dot-nav button.active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+#dot-nav button .dot-label {
+  position: absolute;
+  right: 1.4rem;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+#dot-nav button:hover .dot-label,
+#dot-nav button:focus-visible .dot-label {
+  opacity: 1;
+}
+
+/* ---- Controls ---- */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.2rem;
+}
+
+.controls select,
+.controls button.toggle {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-line);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.controls button.toggle.active {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* ---- Legend ---- */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.legend .swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+}
+
+/* ---- Heatmap matrix (custom, not a chart-lib type) ---- */
+.matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.matrix-table th, .matrix-table td {
+  padding: 0.55rem 0.7rem;
+  text-align: right;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.matrix-table th:first-child, .matrix-table td:first-child {
+  text-align: left;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.matrix-table thead th {
+  color: var(--color-text-faint);
+  font-weight: 400;
+  font-size: 0.78rem;
+}
+
+.matrix-cell {
+  border-radius: 3px;
+  color: #14171a;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Global filter panel ---- */
+#global-controls {
+  position: fixed;
+  top: 1.4rem;
+  left: 1.6rem;
+  z-index: 20;
+  background: rgba(28, 32, 36, 0.85);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--color-line);
+  border-radius: 4px;
+  padding: 0.6rem 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+#global-controls select {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-line);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  padding: 0.25rem 0.4rem;
+  border-radius: 3px;
+}
+
+/* ---- Map ---- */
+#map-canvas, #solutions-map-canvas {
+  height: 420px;
+  border-radius: 3px;
+}
+
+/* Dark-mode trick for keyless OpenStreetMap tiles: invert + hue-rotate only
+   the tile layer, leaving markers/popups (a different pane) full color. */
+#map-canvas .leaflet-tile-pane,
+#solutions-map-canvas .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.92);
+}
+
+/* ---- Conclusion ---- */
+#conclusion .section-inner { grid-template-columns: 1fr; max-width: 760px; }
+.scorecard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1px;
+  background: var(--color-line);
+  border: 1px solid var(--color-line);
+  margin: 2rem 0;
+}
+.scorecard .cell {
+  background: var(--color-surface);
+  padding: 1.2rem 1.4rem;
+}
+.scorecard .cell .num {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--color-accent);
+}
+.scorecard .cell .label {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: 0.3em;
+}
+
+.cta {
+  margin-top: 1.5rem;
+  display: inline-block;
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
+  padding: 0.7rem 1.3rem;
+  border-radius: 3px;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.cta:hover { background: var(--color-accent); color: #14171a; }
+
+footer.credit {
+  position: absolute;
+  bottom: 1.4rem;
+  left: 8vw;
+  font-size: 0.72rem;
+  color: var(--color-text-faint);
+}
+
+.loading-msg, .error-msg {
+  font-size: 0.85rem;
+  color: var(--color-text-faint);
+}
+.error-msg { color: var(--color-fatal); }
+
+/* ---- Solutions section ---- */
+.solution-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  margin-top: 1.4rem;
+}
+
+.solution-item {
+  border-left: 2px solid var(--color-line);
+  padding-left: 1rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, opacity 0.15s ease;
+  opacity: 0.6;
+}
+
+.solution-item.active {
+  border-left-color: var(--color-accent);
+  opacity: 1;
+}
+
+.solution-item .cause {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-faint);
+}
+
+.solution-item h3 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1.02rem;
+  margin: 0.15em 0 0.3em;
+  color: var(--color-text);
+}
+
+.solution-item p {
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* ---- Glossary tooltip (used in the divisions chart) ---- */
+.glossary {
+  margin-top: 1rem;
+  font-size: 0.82rem;
+  color: var(--color-text-faint);
+  border: 1px dashed var(--color-line);
+  border-radius: 3px;
+  padding: 0.7rem 0.9rem;
+}
+.glossary strong { color: var(--color-text-muted); }
+.glossary a { font-size: 0.8rem; }
+
+/* ---- Multi-line day-of-week legend ---- */
+.dow-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.9rem;
+  margin-top: 0.9rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+.dow-legend .swatch {
+  display: inline-block;
+  width: 10px;
+  height: 3px;
+  margin-right: 0.35rem;
+  vertical-align: middle;
+  border-radius: 2px;
+}
+.dow-legend .weekend { color: var(--color-accent); }
+
+/* ---- Responsive ---- */
+@media (max-width: 860px) {
+  .section-inner {
+    grid-template-columns: 1fr;
+  }
+  .narrative { max-width: none; }
+  #dot-nav { right: 0.7rem; gap: 0.7rem; }
+  #dot-nav .dot-label { display: none; }
+  #global-controls { left: 0.8rem; top: 0.8rem; flex-wrap: wrap; max-width: 70vw; }
+  .section { padding: 8vh 6vw; }
+}
