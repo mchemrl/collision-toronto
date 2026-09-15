@@ -57,7 +57,25 @@ class CollisionData:
         self.df = self._load(path)
 
     def _load(self, path: str) -> pd.DataFrame:
-        df = pd.read_csv(path, low_memory=False)
+        df = pd.read_csv(path, usecols=[
+        "FATALITIES",
+        "INJURY_COLLISIONS",
+        "FTR_COLLISIONS",
+        "PD_COLLISIONS",
+        "AUTOMOBILE",
+        "MOTORCYCLE",
+        "PASSENGER",
+        "BICYCLE",
+        "PEDESTRIAN",
+        "OCC_HOUR",
+        "OCC_YEAR",
+        "LAT_WGS84",
+        "LONG_WGS84",
+        "DIVISION",
+        "NEIGHBOURHOOD_158",
+        "OCC_DOW",
+        "OCC_MONTH",
+    ], low_memory=False)
 
         for col in SEVERITY_COLS:
             if col in df.columns:
