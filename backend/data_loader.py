@@ -1,5 +1,11 @@
 """
 Loads and normalizes the Toronto Police traffic collision CSV.
+
+The source file is a public open-data export, and different exports of the
+same dataset have used slightly different encodings for the same concept
+(e.g. involvement columns as 1/0, True/False, or "YES"/"NO"). Everything in
+here is written defensively so the app still runs even if a column's raw
+encoding differs from what we expect.
 """
 
 import os
@@ -57,25 +63,7 @@ class CollisionData:
         self.df = self._load(path)
 
     def _load(self, path: str) -> pd.DataFrame:
-        df = pd.read_csv(path, usecols=[
-        "FATALITIES",
-        "INJURY_COLLISIONS",
-        "FTR_COLLISIONS",
-        "PD_COLLISIONS",
-        "AUTOMOBILE",
-        "MOTORCYCLE",
-        "PASSENGER",
-        "BICYCLE",
-        "PEDESTRIAN",
-        "OCC_HOUR",
-        "OCC_YEAR",
-        "LAT_WGS84",
-        "LONG_WGS84",
-        "DIVISION",
-        "NEIGHBOURHOOD_158",
-        "OCC_DOW",
-        "OCC_MONTH",
-    ], low_memory=False)
+        df = pd.read_csv(path, low_memory=False)
 
         for col in SEVERITY_COLS:
             if col in df.columns:

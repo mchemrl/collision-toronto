@@ -1,5 +1,8 @@
-
-const API_BASE = 'https://toronto-collisions-api.onrender.com';
+// ============================================================
+// Config — change this if your backend runs somewhere other
+// than localhost:8000
+// ============================================================
+const API_BASE = "http://127.0.0.1:8000";
 
 // Read theme colors straight from CSS so JS and CSS never drift apart.
 const css = getComputedStyle(document.documentElement);
